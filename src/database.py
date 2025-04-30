@@ -5,9 +5,14 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./todo.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_db():
-    db = SessionLocal()
+# create a new session for each request
+def get_session():
+    session = SessionLocal()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
+
+def get_db():
+    return next(get_session())
+

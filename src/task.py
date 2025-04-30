@@ -1,7 +1,9 @@
-from base import Base
+from src.base import Base
+from src.database import get_db
+
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from database import get_db
+
 class Task(Base):
     __tablename__ = "tasks"
     
@@ -36,7 +38,9 @@ class Task(Base):
         return task
     
     @staticmethod
-    def get_all():
+    def get_all(todo_list_id: int = None):
         db = get_db()
+        if todo_list_id:
+            return db.query(Task).filter(Task.todo_list_id == todo_list_id).all()
         return db.query(Task).all()
     

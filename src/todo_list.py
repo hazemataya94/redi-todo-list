@@ -1,7 +1,9 @@
-from base import Base
+from src.base import Base
+from src.database import get_db
+
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from database import get_db
+
 class TodoList(Base):
     __tablename__ = "todo_lists"
     

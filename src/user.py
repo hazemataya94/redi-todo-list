@@ -1,8 +1,9 @@
-from base import Base
+from src.base import Base
+from src.database import get_db
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from passlib.context import CryptContext
-from database import get_db
 
 class User(Base):
     __tablename__ = "users"
@@ -26,17 +27,21 @@ class User(Base):
     def hash_password(password: str) -> str:
         return User.pwd_context.hash(password)
 
-    def validate(self) -> bool:
+    def validate(self) -> tuple[bool, str]:
         if not self.username or not isinstance(self.username, str) and len(self.username) < 3:
-            return False
+            return False, "Username must be a string and at least 3 characters long"
         if not self.password_hash or not isinstance(self.password_hash, str) and len(self.password_hash) < 8:
-            return False
-        return True
+            return False, "Password must be a string and at least 8 characters long"
+        # if username already exists
+        db = get_db()
+        if db.query(User).filter(User.username == self.username).first():
+            return False, "Username already exists"
+        return True, "User created successfully"
 
     def save(self):
-        
-        if not self.validate():
-            raise ValueError("Invalid user data")
+        valid, message = self.validate()
+        if not valid:
+            raise ValueError(message)
         
         db = get_db()
         db.add(self)
@@ -51,8 +56,9 @@ class User(Base):
         
         user = User(username=username, password_hash=hashed_password)
         
-        if not user.validate():
-            raise ValueError("Invalid user data")
+        valid, message = user.validate()
+        if not valid:
+            raise ValueError(message)
         
         db = get_db()
         
@@ -61,3 +67,7 @@ class User(Base):
         db.refresh(user)
         
         return user
+    
+    def get_all():
+        db = get_db()
+        return db.query(User).all()
